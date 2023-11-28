@@ -7,7 +7,7 @@ print("device", device)
 thresh = 0.5  # neuronal threshold
 lens = 0.5 / 3  # hyperparameters of approximate function
 decay = 0.9  # decay constants
-num_classes = 2
+num_classes = 10
 batch_size = 16
 learning_rate = 5e-4
 num_epochs = 10 # max epoch
@@ -114,8 +114,10 @@ class SCNN(nn.Module):
             # print("The value of h1 is:", h1_mem, h1_spike)
             h1_sumspike += h1_spike
             h2_mem, h2_spike = mem_update(self.fc2, h1_spike, h2_mem, h2_spike)
-            # print("The value of h2 is:", h2_mem, h2_spike)
+            # print("The value of h2 is:", h2_mem, h2_spike)'
+            softmax_output = F.softmax(h2_mem, dim=1)
             h2_sumspike += h2_spike
 
-        outputs = h2_sumspike / time_window
+        # outputs = h2_sumspike / time_window
+        outputs = softmax_output
         return outputs

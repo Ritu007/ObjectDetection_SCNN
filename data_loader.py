@@ -5,9 +5,10 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import ToTensor
 import cv2
 import numpy as np
+import parameters as param
 
 
-input_size = 28
+input_size = param.image_size
 
 class ObjectDetectionDataset(Dataset):
 
