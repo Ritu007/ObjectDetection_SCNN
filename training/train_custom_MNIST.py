@@ -15,7 +15,7 @@ from parameters import *
 import cv2
 import numpy as np
 import random
-names = 'spiking_model'
+names = 'spiking_model_custom_mnist'
 data_path = './raw/'  # ta" if torch.cuda.is_available() else "cpu")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 train_dataset = torchvision.datasets.MNIST(root=data_path, train=True, download=True, transform=transforms.ToTensor())
@@ -45,11 +45,11 @@ for real_epoch in range(num_epoch):
     print("Epoch: ", real_epoch)
     running_loss = 0
     start_time = time.time()
-    for epoch in range(1):
+    for epoch in range(param.sub_epoch):
         print("Sub-epoch: ", epoch)
         for i, (images, labels) in enumerate(train_loader):
 
-            print("Index: ", images.shape)
+            # print("Index: ", images.shape)
             # print(labels)
             # --- create zoom-in and zoom-out version of each image
             images2 = torch.empty((images.shape[0] * 2, 10, images.shape[2], images.shape[3]))
@@ -81,7 +81,7 @@ for real_epoch in range(num_epoch):
             # print(images2.shape)
             outputs = snn(images2)
             labels_ = torch.zeros(batch_size * 2, 10).scatter_(1, labels2.view(-1, 1), 1)
-            # print("labels2:", labels_)
+            print("labels2:", labels_)
             loss = criterion(outputs.cpu(), labels_)
             running_loss += loss.item()
             loss.backward()
@@ -95,7 +95,7 @@ for real_epoch in range(num_epoch):
     # ================================== Test ==============================
     correct = 0
     total = 0
-    optimizer = lr_scheduler(optimizer, epoch, learning_rate, 40)
+    optimizer = lr_scheduler(optimizer, real_epoch, learning_rate, 5)
     # cm = np.zeros((10, 10), dtype=np.int32)
 
     with torch.no_grad():
@@ -151,7 +151,7 @@ for real_epoch in range(num_epoch):
     print('Test Accuracy of the model on the 10000 test images: %.3f' % (100 * correct / total))
     acc = 100. * float(correct) / float(total)
     acc_record.append(acc)
-    if epoch % 1 == 0:
+    if real_epoch % 2 == 0:
         print(acc)
         print('Saving..')
         state = {
@@ -160,7 +160,7 @@ for real_epoch in range(num_epoch):
             'epoch': epoch,
             'acc_record': acc_record,
         }
-        if not os.path.isdir('checkpoint'):
-            os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt' + names + '.t7')
+        if not os.path.isdir('custom_checkpoint'):
+            os.mkdir('custom_checkpoint')
+        torch.save(state, './custom_checkpoint/ckpt' + names + '.t7')
         best_acc = acc

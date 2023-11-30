@@ -54,7 +54,7 @@ class ATan(torch.autograd.Function):
     def forward(ctx, input_, alpha=2.0):
         ctx.save_for_backward(input_)
         ctx.alpha = alpha
-        out = (input_ > 0).float()
+        out = (input_ > param.thresh).float()
         return out
 
     @staticmethod
@@ -104,7 +104,7 @@ class Sigmoid(torch.autograd.Function):
     def forward(ctx, input_, slope=25):
         ctx.save_for_backward(input_)
         ctx.slope = slope
-        out = (input_ > 0).float()
+        out = (input_ > param.thresh).float()
         return out
 
     @staticmethod
