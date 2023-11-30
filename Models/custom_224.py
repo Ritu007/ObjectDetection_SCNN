@@ -75,7 +75,7 @@ class SpikingCNN(nn.Module):
         for step in range(time_window):  # simulation time steps
             # print("For the time stamp:", step)
             x = input[:, step: step + 1, :, :]
-            # print("The value of X is:", x)
+            print("The value of X is:", x.shape)
             c1_mem, c1_spike = mem_update(self.conv1, x.float(), c1_mem, c1_spike)
             # print("The value of c1 is:", c1_mem, c1_spike)
             x = F.avg_pool2d(c1_spike, 2, stride=2, padding=0)

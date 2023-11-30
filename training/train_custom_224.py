@@ -5,27 +5,31 @@ import time
 import random
 # from model import *
 import torch
-from new_model import *
+from Models.custom_224 import *
 import parameters as param
 import torchvision
 import torchvision.transforms as transforms
 
-names = 'spiking_model'
+names = 'spiking_model_custom_data_rgb'
 count = 0
 data_path = './raw1/'  # ta" if torch.cuda.is_available() else "cpu")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-image_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/train/images/"
-annotations_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/train/labels/"
+# image_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/train/images/"
+image_folder = 'D:/RiturajMtechProject/Datasets/Oxford Pets.v2-by-species.yolov8/train/images'
+# annotations_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/train/labels/"
+annotations_folder = 'D:/RiturajMtechProject/Datasets/Oxford Pets.v2-by-species.yolov8/train/labels'
 
-val_image_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/valid/images/"
-val_annotations_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/valid/labels/"
+# val_image_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/valid/images/"
+val_image_folder = 'D:/RiturajMtechProject/Datasets/Oxford Pets.v2-by-species.yolov8/valid/images'
+# val_annotations_folder = "E:/Project Work/Datasets/Oxford Pets.v2-by-species.yolov8/valid/labels/"
+val_annotations_folder = 'D:/RiturajMtechProject/Datasets/Oxford Pets.v2-by-species.yolov8/valid/labels'
 
-custom_dataset = ObjectDetectionDataset(image_folder, annotations_folder,transform=transform)
+custom_dataset = ObjectDetectionDataset(image_folder, annotations_folder, rgb=True, transform=transform)
 custom_dataloader = DataLoader(custom_dataset, batch_size=param.batch_size, shuffle=True, num_workers=0)
 
 
-validation_dataset = ObjectDetectionDataset(val_image_folder, val_annotations_folder, transform=transform)
+validation_dataset = ObjectDetectionDataset(val_image_folder, val_annotations_folder,rgb=True,  transform=transform)
 validation_dataloader = DataLoader(validation_dataset, batch_size=param.batch_size, shuffle=True, num_workers=0)
 #
 # train_dataset = torchvision.datasets.MNIST(root=data_path, train=True, download=True, transform=transforms.ToTensor())
@@ -64,13 +68,13 @@ for real_epoch in range(param.num_epoch):
         print("Sub-epoch: ", epoch)
         for i, (images, labels) in enumerate(custom_dataloader):
 
-            # print("Index: ", images.shape)
-            # print(labels)
+            print("Index: ", images.shape)
+            print(labels)
             # --- create zoom-in and zoom-out version of each image
             images2 = torch.empty((images.shape[0] * 2, 10, images.shape[2], images.shape[3]))
             labels2 = torch.empty((images.shape[0] * 2), dtype=torch.int64)
             for j in range(images.shape[0]):
-                img0 = images[j, 0, :, :].numpy()
+                img0 = images[j, :, :, :].numpy()
                 rows, cols = img0.shape
                 for k in range(10):
                     rand1 = random.randint(0, rows//2)
@@ -93,7 +97,7 @@ for real_epoch in range(param.num_epoch):
             optimizer.zero_grad()
 
             images2 = images2.float().to(device)
-            # print(images2.shape)
+            print(images2.shape)
             outputs = snn(images2)
             # print("Output: ",outputs)
             labels_ = torch.zeros(param.batch_size * 2, param.num_classes).scatter_(1, labels2.view(-1, 1), 1)
@@ -114,7 +118,7 @@ for real_epoch in range(param.num_epoch):
     # ================================== Test ==============================
     correct = 0
     total = 0
-    optimizer = lr_scheduler(optimizer, param.num_epoch, param.learning_rate, 40)
+    optimizer = lr_scheduler(optimizer, real_epoch, param.learning_rate, 10)
     # cm = np.zeros((10, 10), dtype=np.int32)
 
     with torch.no_grad():
@@ -169,7 +173,7 @@ for real_epoch in range(param.num_epoch):
     print('Test Accuracy of the model on the 10000 test images: %.3f' % (100 * correct / total))
     acc = 100. * float(correct) / float(total)
     acc_record.append(acc)
-    if epoch % 1 == 0:
+    if real_epoch % 2 == 0:
         count+=1
         print(acc)
         print('Saving..')

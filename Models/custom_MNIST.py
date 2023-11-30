@@ -2,28 +2,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import parameters as param
+from surrogate import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device", device)
 
 
 # define approximate firing function
-class ActFun(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, input):
-        ctx.save_for_backward(input)
-        return input.gt(param.thresh).float()
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        input, = ctx.saved_tensors
-        grad_input = grad_output.clone()
-        # temp = abs(input - thresh) < lens
-        temp = torch.exp(-(input - param.thresh) ** 2 / (2 * param.lens ** 2)) / ((2 * param.lens * 3.141592653589793) ** 0.5)
-        return grad_input * temp.float()
 
 
-act_fun = ActFun.apply
+
+act_fun = ATan.apply
 
 
 # membrane potential update
@@ -115,8 +104,8 @@ class SCNN(nn.Module):
             # print("The value of h2 is:", h2_mem, h2_spike)'
 
             h3_sumspike += h3_spike
-            softmax_output = F.softmax(h3_mem, dim=1)
 
-        outputs = h3_sumspike / time_window
-        # outputs = softmax_output
+        # softmax_output = F.softmax(h3_mem, dim=1)
+        # outputs = h3_sumspike / time_window
+        outputs = h3_sumspike
         return outputs

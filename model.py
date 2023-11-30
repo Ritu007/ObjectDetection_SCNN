@@ -10,7 +10,7 @@ decay = 0.9  # decay constants
 num_classes = 10
 batch_size = 16
 learning_rate = 5e-4
-num_epochs = 10 # max epoch
+num_epochs = 3 # max epoch
 sub_epoch = 5
 
 # define approximate firing function

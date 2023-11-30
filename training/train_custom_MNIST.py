@@ -37,7 +37,7 @@ loss_test_record = list([])
 snn = SCNN()
 # snn = CONVLSTM()
 snn.to(device)
-criterion = nn.MSELoss()
+criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(snn.parameters(), lr=learning_rate)
 
 # ================================== Train ==============================
@@ -49,7 +49,7 @@ for real_epoch in range(num_epoch):
         print("Sub-epoch: ", epoch)
         for i, (images, labels) in enumerate(train_loader):
 
-            print("Index: ", images.shape)
+            # print("Index: ", images.shape)
             # print(labels)
             # --- create zoom-in and zoom-out version of each image
             images2 = torch.empty((images.shape[0] * 2, 10, images.shape[2], images.shape[3]))
@@ -78,8 +78,9 @@ for real_epoch in range(num_epoch):
             optimizer.zero_grad()
 
             images2 = images2.float().to(device)
-            # print(images2.shape)
+            print(images2)
             outputs = snn(images2)
+            # print("Outputs:", outputs)
             labels_ = torch.zeros(batch_size * 2, 10).scatter_(1, labels2.view(-1, 1), 1)
             # print("labels2:", labels_)
             loss = criterion(outputs.cpu(), labels_)
@@ -95,7 +96,7 @@ for real_epoch in range(num_epoch):
     # ================================== Test ==============================
     correct = 0
     total = 0
-    optimizer = lr_scheduler(optimizer, epoch, learning_rate, 40)
+    optimizer = lr_scheduler(optimizer, epoch, learning_rate, 10)
     # cm = np.zeros((10, 10), dtype=np.int32)
 
     with torch.no_grad():
@@ -160,7 +161,7 @@ for real_epoch in range(num_epoch):
             'epoch': epoch,
             'acc_record': acc_record,
         }
-        if not os.path.isdir('checkpoint'):
-            os.mkdir('checkpoint')
-        torch.save(state, './checkpoint/ckpt' + names + '.t7')
+        if not os.path.isdir('cust_checkpoint'):
+            os.mkdir('cust_checkpoint')
+        torch.save(state, './cust_checkpoint/ckpt' + names + '.t7')
         best_acc = acc
