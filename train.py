@@ -14,7 +14,7 @@ import torch
 import cv2
 import numpy as np
 import random
-names = 'spiking_model'
+names = 'spiking_model_new'
 data_path = './raw/'  # ta" if torch.cuda.is_available() else "cpu")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 train_dataset = torchvision.datasets.MNIST(root=data_path, train=True, download=True, transform=transforms.ToTensor())
