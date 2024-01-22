@@ -36,6 +36,9 @@ act_fun = ActFun.apply
 
 
 def mem_update(ops, x, mem, spike):
+    ops_result = ops(x)
+    print("mem size:", mem.size())
+    print("ops_result size:", ops_result.size())
     mem = mem * decay + ops(x)
     spike = act_fun(mem)  # act_fun : approximation firing function
     return mem, spike
@@ -93,7 +96,7 @@ class SCNN(nn.Module):
         h2_mem = h2_spike = h2_sumspike = torch.zeros(batch_size * 2, cfg_fc[1], device=device)
 
         for step in range(time_window):  # simulation time steps
-            # print("For the time stamp:", step)
+            print("For the time stamp:", step)
             x = input[:, step: step + 1, :, :]
             # print("The value of X is:", x)
             c1_mem, c1_spike = mem_update(self.conv1, x.float(), c1_mem, c1_spike)
@@ -117,6 +120,8 @@ class SCNN(nn.Module):
             # print("The value of h2 is:", h2_mem, h2_spike)'
             softmax_output = F.softmax(h2_mem, dim=1)
             h2_sumspike += h2_spike
+
+            print("sump: ", h2_sumspike)
 
         outputs = h2_sumspike / time_window
         # outputs = softmax_output

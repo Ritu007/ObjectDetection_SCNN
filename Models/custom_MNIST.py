@@ -25,12 +25,12 @@ def mem_update(ops, x, mem, spike):
 # cnn_layer(in_planes(channels), out_planes(channels), kernel_size, stride, padding)
 cfg_cnn = [(1, 32, 3, 1, 1),
            (32, 64, 3, 1, 1),
-           (64, 128, 3, 1, 1), ]
+           (64, 64, 3, 1, 1), ]
 # kernel size
 # cnn output shapes (conv1, conv2, fc1 input)
 cfg_kernel = [28, 27, 14, 7]  # conv layers input image shape (+ last output shape)
 # fc layer
-cfg_fc = [1024, 128, param.num_classes]  # linear layers output
+cfg_fc = [512, 64, param.num_classes]  # linear layers output
 
 
 # Dacay learning_rate
@@ -72,7 +72,11 @@ class SCNN(nn.Module):
 
         h1_mem = h1_spike = h1_sumspike = torch.zeros(param.batch_size * 2, cfg_fc[0], device=device)
         h2_mem = h2_spike = h2_sumspike = torch.zeros(param.batch_size * 2, cfg_fc[1], device=device)
-        h3_mem = h3_spike = h3_sumspike = torch.zeros(param.batch_size * 2, cfg_fc[2], device=device)
+        h3_mem = h3_spike = h3_sumspike = new_time_of_spike = torch.zeros(param.batch_size * 2, cfg_fc[2], device=device)
+        time_of_spike = torch.zeros(param.batch_size * 2, cfg_fc[2], device=device, requires_grad=True)
+        time_of_spike = 10 + time_of_spike
+
+        # prev_spike = torch.zeros(param.batch_size * 2, cfg_fc[2], device=device)
 
         for step in range(time_window):  # simulation time steps
             # print("For the time stamp:", step)
@@ -100,10 +104,23 @@ class SCNN(nn.Module):
             h2_sumspike += h2_spike
             h3_mem, h3_spike = mem_update(self.fc3, h2_spike, h3_mem, h3_spike)
             # print("The value of h2 is:", h2_mem, h2_spike)'
-
+            # prev_spike = h3_sumspike
             h3_sumspike += h3_spike
-            softmax_output = F.softmax(h3_mem, dim=1)
+            # print("Spike: ", h3_spike)
 
-        outputs = h3_sumspike / time_window
-        # outputs = softmax_output
+            # print("Row: ", time_of_spike.size(1))
+            # print("Col: ", time_of_spike.size(0))
+            # for i in range(time_of_spike.size(0)):  # Iterate over rows
+            #     for j in range(time_of_spike.size(1)):  # Iterate over columns
+            #         if h3_spike[i, j] == 1 and time_of_spike[i, j] == 10:
+            #             # time_of_spike = time_of_spike.clone()
+            #             time_of_spike[i, j] = step
+            #
+            # new_time_of_spike = time_of_spike
+
+        # outputs = (10 - new_time_of_spike)/time_window
+
+        # outputs = F.softmax(outputs, dim=1)
+        # print(outputs)
+        outputs = h3_sumspike/time_window
         return outputs

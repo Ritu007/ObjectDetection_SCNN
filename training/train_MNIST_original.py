@@ -3,9 +3,11 @@ import torchvision
 import torchvision.transforms as transforms
 import os
 import time
+
+from torchsummary import summary
 from sklearn.metrics import confusion_matrix
 from plot_confmat import plot_confusion_matrix
-from model import *
+from Models.MNIST_original import *
 import torch
 
 # from net_model import SCNN as CONVLSTM
@@ -34,8 +36,11 @@ loss_test_record = list([])
 
 
 snn = SCNN()
+
+
 # snn = CONVLSTM()
 snn.to(device)
+# summary(snn, (1,28,28), batch_size=16,device='cuda')
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(snn.parameters(), lr=learning_rate)
 
@@ -79,6 +84,7 @@ for real_epoch in range(num_epochs):
             images2 = images2.float().to(device)
             # print(images2.shape)
             outputs = snn(images2)
+            # print(out)
             labels_ = torch.zeros(batch_size * 2, 10).scatter_(1, labels2.view(-1, 1), 1)
             # print("labels2:", labels_)
             loss = criterion(outputs.cpu(), labels_)

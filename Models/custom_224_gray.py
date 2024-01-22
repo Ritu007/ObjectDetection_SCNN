@@ -10,7 +10,7 @@ print("device", device)
 
 
 # define approximate firing function
-act_fun = ActFun.apply
+act_fun = ATan.apply
 
 
 # membrane potential update
@@ -61,16 +61,16 @@ class SpikingCNN(nn.Module):
 
     def forward(self, input, time_window=10):
         # convolutional layers membrane potential and spike memory
-        c1_mem = c1_spike = torch.zeros(param.batch_size * 2, cfg_cnn[0][1], cfg_kernel[0], cfg_kernel[0], device=device)
-        c2_mem = c2_spike = torch.zeros(param.batch_size * 2, cfg_cnn[1][1], cfg_kernel[1], cfg_kernel[1], device=device)
+        c1_mem = c1_spike = torch.zeros(param.batch_size , cfg_cnn[0][1], cfg_kernel[0], cfg_kernel[0], device=device)
+        c2_mem = c2_spike = torch.zeros(param.batch_size, cfg_cnn[1][1], cfg_kernel[1], cfg_kernel[1], device=device)
 
         # linear layers membrane potential and spike memory
-        c3_mem = c3_spike = torch.zeros(param.batch_size * 2, cfg_cnn[2][1], cfg_kernel[3], cfg_kernel[3], device=device)
-        # c4_mem = c4_spike = torch.zeros(param.batch_size * 2, cfg_cnn[3][1], cfg_kernel[4], cfg_kernel[4], device=device)
+        c3_mem = c3_spike = torch.zeros(param.batch_size, cfg_cnn[2][1], cfg_kernel[3], cfg_kernel[3], device=device)
+        # c4_mem = c4_spike = torch.zeros(param.batch_size, cfg_cnn[3][1], cfg_kernel[4], cfg_kernel[4], device=device)
 
-        h1_mem = h1_spike = h1_sumspike = torch.zeros(param.batch_size * 2, cfg_fc[0], device=device)
-        h2_mem = h2_spike = h2_sumspike = torch.zeros(param.batch_size * 2, cfg_fc[1], device=device)
-        h3_mem = h3_spike = h3_sumspike = torch.zeros(param.batch_size * 2, cfg_fc[2], device=device)
+        h1_mem = h1_spike = h1_sumspike = torch.zeros(param.batch_size, cfg_fc[0], device=device)
+        h2_mem = h2_spike = h2_sumspike = torch.zeros(param.batch_size, cfg_fc[1], device=device)
+        h3_mem = h3_spike = h3_sumspike = torch.zeros(param.batch_size, cfg_fc[2], device=device)
 
         for step in range(time_window):  # simulation time steps
             # print("For the time stamp:", step)
@@ -86,13 +86,13 @@ class SpikingCNN(nn.Module):
 
             c3_mem, c3_spike = mem_update(self.conv3, x, c3_mem, c3_spike)
             # print("The value of c3 is:", c3_mem, c3_spike)
-            x = F.avg_pool2d(c3_spike, 2, stride=1, padding=0)
+            x = F.avg_pool2d(c3_spike, 2, stride=2, padding=0)
 
             # c4_mem, c4_spike = mem_update(self.conv4, x, c4_mem, c4_spike)
             # # print("The value of c3 is:", c3_mem, c3_spike)
             # x = F.avg_pool2d(c4_spike, 2, stride=2, padding=0)
 
-            x = x.view(param.batch_size * 2, -1)  # flatten
+            x = x.view(param.batch_size, -1)  # flatten
 
             h1_mem, h1_spike = mem_update(self.fc1, x, h1_mem, h1_spike)
             # print("The value of h1 is:", h1_mem, h1_spike)

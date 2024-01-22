@@ -81,7 +81,7 @@ for real_epoch in range(num_epoch):
             # print(images2.shape)
             outputs = snn(images2)
             labels_ = torch.zeros(batch_size * 2, 10).scatter_(1, labels2.view(-1, 1), 1)
-            print("labels2:", labels_)
+            # print("labels2:", labels_)
             loss = criterion(outputs.cpu(), labels_)
             running_loss += loss.item()
             loss.backward()
